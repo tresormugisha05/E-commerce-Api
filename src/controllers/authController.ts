@@ -157,10 +157,11 @@ export const login = async (req: Request, res: Response) => {
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    const draft = "E_COMMERCE";
-    const token = jwt.sign({ id: user._id, role: user.UserType }, draft, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.UserType },
+      process.env.JWT_SECRET!, // ✅ SAME SECRET
+      { expiresIn: "1d" }
+    );
 
     res.json({
       message: "Login successful",
