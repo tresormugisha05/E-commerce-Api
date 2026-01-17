@@ -1,13 +1,7 @@
-import mongoose,{Document,Schema} from "mongoose";
-export interface OrderDetails extends Document {
-    PRODUCT?:ProductDetails,
-    cart?:string,
-    TimeOrderFilled:Date
-}
-export interface ProductDetails extends Document{
-    Product:String,
-    amount:number
-}
-const orderSchema= Schema<OrderDetails>({
-    
-})
+import Router from "express"
+import { NewOrder,updateOrder,DeleteOrder } from "../controllers/orders.controller"
+const app =Router()
+app.post("/",NewOrder)
+app.put("/",updateOrder)
+app.delete("/",DeleteOrder)
+export default app

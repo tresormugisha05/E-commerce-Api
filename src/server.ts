@@ -6,6 +6,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger.config";
 import cartRoutes from "./routes/cartRoutes";
 import authRoutes from "./routes/authRoutes";
+import orderRoutes from "./routes/ordersRoutes";
 import dotenv from "dotenv";
 dotenv.config();
 const MONGO_URL: string =
@@ -30,9 +31,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/auth", authRoutes);
-// app.get('/', (req, res) => res.send('API is running...'));
-
-// app.use("*",(req, res) => res.status(404).json({ message: "Endpoint not found" }));
+app.use("/api/order", orderRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
