@@ -27,23 +27,19 @@ import { v4 as uuid } from "uuid";
  *             properties:
  *               customerName:
  *                 type: string
- *                 description: Name of the customer placing the order
  *                  example:"tresor"
  *               ProductName:
  *                 type: string
- *                 description: Name of the product (optional if using cart)
- *                  example: "bracelets"
+ *                  example: "bracelets(optional if you purchased cart)"
  *               ProductAmount:
  *                 type: number
- *                 description: Quantity of the product
  *                  example:2
  *               cart:
  *                 type: string
- *                 description: Name of the cart (optional if using product)
- *                  example:"the cart you have created"
+ *                  example:"the cart you have created  (optional if you already a product)"
  *               CartAmount:
  *                 type: number
- *                 description: Quantity of the cart
+ *                 description: "Quantity of the cart
  *                  example:3
  *     responses:
  *       200:
@@ -131,7 +127,6 @@ export const NewOrder = async (res: Response, req: Request) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: The UUID or ID of the order to update
  *     requestBody:
  *       required: true
  *       content:
@@ -140,19 +135,15 @@ export const NewOrder = async (res: Response, req: Request) => {
  *             type: object
  *              customerName:
  *                 type: string
- *                 description: Name of the customer placing the order
  *                  example:"tresor"
  *               ProductName:
  *                 type: string
- *                 description: Name of the product (optional if using cart)
  *                  example: "bracelets"
  *               ProductAmount:
  *                 type: number
- *                 description: Quantity of the product
  *                  example:2
  *               cart:
  *                 type: string
- *                 description: Name of the cart (optional if using product)
  *                  example:"the cart you have created"
  *               CartAmount:
  *                 type: number
