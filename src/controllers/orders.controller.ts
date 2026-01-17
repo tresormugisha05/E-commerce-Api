@@ -39,7 +39,6 @@ import { v4 as uuid } from "uuid";
  *                  example:"the cart you have created  (optional if you already a product)"
  *               CartAmount:
  *                 type: number
- *                 description: "Quantity of the cart
  *                  example:3
  *     responses:
  *       200:
@@ -147,7 +146,6 @@ export const NewOrder = async (res: Response, req: Request) => {
  *                  example:"the cart you have created"
  *               CartAmount:
  *                 type: number
- *                 description: Quantity of the cart
  *                  example:3
  *     responses:
  *       200:
@@ -208,7 +206,6 @@ export const updateOrder = async (req: Request, res: Response) => {
  *             properties:
  *               orderId:
  *                 type: string
- *                 description: The ID of the order to delete
  *     responses:
  *       200:
  *         description: Order deleted successfully
