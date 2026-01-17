@@ -10,8 +10,9 @@ import mongoose from "mongoose";
 import Cart from "../models/Cart";
 import Product from "../models/Product";
 import dotenv from "dotenv";
-import { error } from "node:console";
+import { AuthRequest } from "../models/type";
 dotenv.config();
+
 /**
  * @swagger
  * /api/cart:
@@ -62,20 +63,30 @@ export const getCart = async (req: Request, res: Response) => {
  *       404:
  *         description: Product not found
  */
-export const addToCart = async (req: Request, res: Response) => {
+
+export const addToCart = async (req: AuthRequest, res: Response) => {
   try {
     const { productId, quantity } = req.body;
 
+    // now TS knows req.user exists
+    const CartOwner = req.user!.username;
+
     if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ error: "incorrect Id input" });
+      return res.status(400).json({ error: "Incorrect product Id input" });
     }
 
     const productExists = await Product.findById(productId);
     if (!productExists) {
-      return res.status(404).json({ error: "product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    const newItem = new Cart({ productId, quantity: quantity || 1 });
+    // create cart item with owner
+    const newItem = new Cart({
+      productId,
+      quantity: quantity || 1,
+      CartOwner, // assign username
+    });
+
     await newItem.save();
     res.status(201).json(newItem);
   } catch (error: any) {

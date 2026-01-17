@@ -9,7 +9,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { AuthRequest } from "../models/type";
-import { error } from "node:console";
 import dotenv from "dotenv";
 dotenv.config();
 /**

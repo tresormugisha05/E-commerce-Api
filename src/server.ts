@@ -11,7 +11,7 @@ dotenv.config();
 const MONGO_URL: string =
   "mongodb+srv://admin:DfET6Bc.Zyc9cLv@cluster12.etcfeji.mongodb.net/?appName=Cluster12";
 const app = express();
-const PORT = process.env.PORT||6000;
+const PORT = process.env.PORT || 6000;
 app.use(express.json());
 app.use(
   "/api-docs",
