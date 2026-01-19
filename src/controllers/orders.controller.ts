@@ -83,8 +83,10 @@ export const NewOrder = async (req: Request, res: Response) => {
       message: "Order placed successfully",
       order,
     });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to create order", error });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Failed to create order", error: error.message });
   }
 };
 
