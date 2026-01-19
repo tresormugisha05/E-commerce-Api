@@ -2,19 +2,18 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICart extends Document {
   CartName: string;
-  productDet: {
-    ProductName: string;
-    quantity: number;
-  }[];
+  productDet: { ProductName: string; quantity: number }[];
   addedAt: Date;
 }
 
-const CartSchema: Schema = new Schema({
-  CartName: { type: String, required: false },
-  productDet: {
-    ProductName: { type: String, required: true },
-    quantity: { type: Number, default: 1 },
-  },
+const CartSchema = new Schema<ICart>({
+  CartName: { type: String, required: true },
+  productDet: [
+    {
+      ProductName: { type: String, required: true },
+      quantity: { type: Number, default: 1 },
+    },
+  ],
   addedAt: { type: Date, default: Date.now },
 });
 

@@ -83,10 +83,12 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
     // create cart item with owner
     const newItem = new Cart({
       CartName,
-      productDet: {
-        ProductName,
-        quantity: quantity || 1,
-      },
+      productDet: [
+        {
+          ProductName,
+          quantity: quantity || 1,
+        },
+      ],
       addedAt: new Date(),
     });
 
