@@ -75,7 +75,7 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: " the inputs are not valid" });
     }
 
-    const productExists = await Product.findById(ProductName);
+    const productExists = await Product.findOne({ name: ProductName });
     if (!productExists) {
       return res.status(404).json({ error: "Product not found" });
     }
