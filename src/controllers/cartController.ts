@@ -71,8 +71,8 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
     console.log(req.user);
 
-    if (!ProductName || !mongoose.Types.ObjectId.isValid(ProductName)) {
-      return res.status(400).json({ error: "Incorrect product Id input" });
+    if (!ProductName) {
+      return res.status(400).json({ error: " the inputs are not valid" });
     }
 
     const productExists = await Product.findById(ProductName);
