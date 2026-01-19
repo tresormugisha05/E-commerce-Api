@@ -5,7 +5,7 @@ export interface ICart extends Document {
   productDet: {
     ProductName: string;
     quantity: number;
-  };
+  }[];
   addedAt: Date;
 }
 

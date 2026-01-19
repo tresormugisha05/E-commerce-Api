@@ -38,8 +38,9 @@ export const getCart = async (req: Request, res: Response) => {
  * @swagger
  * /api/cart:
  *   post:
- *     summary: Add a product to the cart
- *     tags: [Cart]
+ *     summary: Add product to cart
+ *     tags:
+ *       - Cart
  *     requestBody:
  *       required: true
  *       content:
@@ -47,23 +48,19 @@ export const getCart = async (req: Request, res: Response) => {
  *           schema:
  *             type: object
  *             required:
- *               - product name -cart name
+ *               - CartName
+ *               - ProductName
  *             properties:
- *                cart name:
- *                  type:string
- *               product name:
+ *               CartName:
  *                 type: string
- *                 example: straw berries
+ *               ProductName:
+ *                 type: string
  *               quantity:
  *                 type: number
  *                 example: 1
  *     responses:
  *       201:
  *         description: Product added to cart
- *       400:
- *         description: Invalid input
- *       404:
- *         description: Product not found
  */
 
 export const addToCart = async (req: AuthRequest, res: Response) => {
@@ -102,50 +99,60 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
 /**
  * @swagger
- * /api/cart/:
+ * /api/cart:
  *   delete:
- *     summary: Remove a single item from the cart
- *     tags: [Cart]
- *     parameters:
- *       - in: path
- *         name: product name
- *         required: true
- *         schema:
- *           type: string
- *      example:straw berries
- *         description: product name
+ *     summary: Remove item from cart
+ *     tags:
+ *       - Cart
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - CartName
+ *               - ProductName
+ *             properties:
+ *               CartName:
+ *                 type: string
+ *               ProductName:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Item removed successfully
- *       400:
- *         description: Invalid cart ID
- *       404:
- *         description: Cart item not found
+ *         description: Item removed
  */
+
 export const removeFromCart = async (req: Request, res: Response) => {
   try {
-    const { ProductName } = req.body;
-    if (!ProductName) {
-      return res.status(400).json({ error: "ProductName field is required" });
+    const { ProductName, CartName } = req.body;
+    if (!ProductName || !CartName) {
+      return res
+        .status(400)
+        .json({ error: "Both CartName and ProductName are required" });
     }
 
-    // Find and delete the whole cart that contains that product
-    const deletedCart = await Cart.findOneAndDelete({
-      "productDet.ProductName": ProductName,
-    });
+    const updatedCart = await Cart.findOneAndUpdate(
+      { CartName },
+      { $pull: { productDet: { ProductName } } },
+      { new: true },
+    );
 
-    if (!deletedCart) {
+    if (!updatedCart) {
       return res
         .status(404)
-        .json({ error: `No product named ${ProductName} in your cart` });
+        .json({ error: "Cart not found or product not in cart" });
     }
 
-    return res.status(200).json({ message: "Removed successfully" });
+    return res.status(200).json({
+      message: "Product removed from cart successfully",
+      cart: updatedCart,
+    });
   } catch (error: any) {
     console.error(error);
     return res
       .status(500)
-      .json({ error: "Failed to delete product from your cart" });
+      .json({ error: "Failed to remove product from cart" });
   }
 };
 

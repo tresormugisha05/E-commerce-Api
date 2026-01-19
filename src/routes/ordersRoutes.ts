@@ -7,5 +7,5 @@ import {
 const app = Router();
 app.post("/", NewOrder);
 app.put("/:orderId", updateOrder);
-app.delete("/", DeleteOrder)
+app.delete("/:orderId", DeleteOrder);
 export default app;

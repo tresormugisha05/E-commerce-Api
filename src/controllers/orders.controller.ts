@@ -17,7 +17,7 @@ dotenv.config();
  * @swagger
  * /api/orders:
  *   post:
- *     summary: Create a new order
+ *     summary: Create a new order from a cart
  *     tags: [Orders]
  *     requestBody:
  *       required: true
@@ -26,62 +26,65 @@ dotenv.config();
  *           schema:
  *             type: object
  *             required:
- *               - customerName
+ *               - cartName
  *             properties:
- *               cart name:
+ *               cartName:
  *                 type: string
- *                 example: "the cart you have created"
+ *                 example: "myCart1"
  *     responses:
- *       200:
+ *       201:
  *         description: Order placed successfully
  *       400:
- *         description: Invalid input or customer/product/cart not found
+ *         description: cartName missing
+ *       404:
+ *         description: Cart not found
  *       500:
  *         description: Internal server error
  */
+
 export const NewOrder = async (req: Request, res: Response) => {
   try {
-    const { CartName } = req.body;
+    const { cartName } = req.body;
+    const orderId = uuid();
 
-    if (!CartName) {
-      return res.status(400).json({ message: "Provide CartName!" });
+    if (!cartName) {
+      return res.status(400).json({ message: "cartName is required" });
     }
 
-    // 1️⃣ Find cart
-    const cart = await Cart.findOne({ CartName });
+    // 1. Find cart
+    const cart = await Cart.findOne({ CartName: cartName });
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    // 2️⃣ Calculate total
-    let CartTot = 0;
+    let totalAmount = 0;
 
-    const product = await Product.findOne({
-      ProductName: cart.productDet.ProductName,
-    });
+    // 2. Calculate total using Product.price
+    for (const item of cart.productDet) {
+      const product = await Product.findOne({ name: item.ProductName });
 
-    if (!product) {
-      return res.status(404).json({
-        message: `Product ${cart.productDet.ProductName} not found`,
-      });
+      if (!product) {
+        return res.status(400).json({
+          message: `Product ${item.ProductName} not found`,
+        });
+      }
+
+      totalAmount += item.quantity * product.price;
     }
 
-    CartTot += product.price * cart.productDet.quantity;
-
-    // 3️⃣ Create order
-    const orderResult = await Order.create({
-      orderId: uuid(),
-      cartName: CartName,
-      totalAmount: CartTot,
-      timeOrderPlaced: new Date(),
+    // 3. Create order
+    const order = await Order.create({
+      orderId,
+      cartName: cart.CartName,
+      totalAmount,
     });
 
     res.status(201).json({
-      message: "Order placed successfully. Save your orderId.",
-      orderResult,
+      message: "Order placed successfully",
+      order,
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to place order" });
+    res.status(500).json({ message: "Failed to create order", error });
   }
 };
 
@@ -89,7 +92,7 @@ export const NewOrder = async (req: Request, res: Response) => {
  * @swagger
  * /api/orders/{orderId}:
  *   put:
- *     summary: Update an existing order
+ *     summary: Update an order
  *     tags: [Orders]
  *     parameters:
  *       - in: path
@@ -97,7 +100,7 @@ export const NewOrder = async (req: Request, res: Response) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: The UUID of the order to update
+ *         example: "uuid-value"
  *     requestBody:
  *       required: true
  *       content:
@@ -105,21 +108,10 @@ export const NewOrder = async (req: Request, res: Response) => {
  *           schema:
  *             type: object
  *             properties:
- *               customerName:
+ *               cartName:
  *                 type: string
- *                 example: "tresor"
- *               ProductName:
- *                 type: string
- *                 example: "bracelets"
- *               ProductAmount:
+ *               totalAmount:
  *                 type: number
- *                 example: 2
- *               cart:
- *                 type: string
- *                 example: "the cart you have created"
- *               CartAmount:
- *                 type: number
- *                 example: 3
  *     responses:
  *       200:
  *         description: Order updated successfully
@@ -128,60 +120,61 @@ export const NewOrder = async (req: Request, res: Response) => {
  *       500:
  *         description: Internal server error
  */
+
 export const updateOrder = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const updatedOrder = await Order.findOneAndUpdate({ orderId }, req.body, {
+
+    const order = await Order.findOneAndUpdate({ orderId }, req.body, {
       new: true,
     });
 
-    if (!updatedOrder)
-      return res.status(404).json({ message: "Order not found." });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
-    res
-      .status(200)
-      .json({ message: "Order updated successfully.", order: updatedOrder });
+    res.status(200).json({
+      message: "Order updated successfully",
+      order,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update order.", error });
+    res.status(500).json({ message: "Failed to update order", error });
   }
 };
-
 /**
  * @swagger
- * /api/orders:
+ * /api/orders/{orderId}:
  *   delete:
- *     summary: Delete an order by ID
+ *     summary: Delete an order
  *     tags: [Orders]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - orderId
- *             properties:
- *               orderId:
- *                 type: string
- *                 example: "uuid-of-order"
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "uuid-value"
  *     responses:
  *       200:
  *         description: Order deleted successfully
- *       400:
- *         description: Invalid or missing order ID
- *       500:x
+ *       404:
+ *         description: Order not found
+ *       500:
  *         description: Internal server error
  */
+
 export const DeleteOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId } = req.body;
-    if (!orderId)
-      return res.status(400).json({ message: "orderId is required." });
+    const { orderId } = req.params;
 
-    await Order.findOneAndDelete({ orderId });
+    const deleted = await Order.findOneAndDelete({ orderId });
 
-    res.status(200).json({ message: "Order deleted successfully." });
+    if (!deleted) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error });
+    res.status(500).json({ message: "Failed to delete order", error });
   }
 };
