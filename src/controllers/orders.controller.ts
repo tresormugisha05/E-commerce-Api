@@ -28,21 +28,9 @@ dotenv.config();
  *             required:
  *               - customerName
  *             properties:
- *               customerName:
- *                 type: string
- *                 example: "tresor"
- *               ProductName:
- *                 type: string
- *                 example: "bracelets"
- *               ProductAmount:
- *                 type: number
- *                 example: 2
- *               cart:
+ *               cart name:
  *                 type: string
  *                 example: "the cart you have created"
- *               CartAmount:
- *                 type: number
- *                 example: 3
  *     responses:
  *       200:
  *         description: Order placed successfully
@@ -53,57 +41,47 @@ dotenv.config();
  */
 export const NewOrder = async (req: Request, res: Response) => {
   try {
-    const { customerName, ProductName, ProductAmount, cart, CartAmount } =
-      req.body;
-    const orderId: string = uuid();
+    const { CartName } = req.body;
 
-    // Verify user
-    const user = await User.findOne({ username: customerName });
-    if (!user)
-      return res
-        .status(400)
-        .json({ message: `Customer ${customerName} not found.` });
-
-    // Verify product/cart
-    if (!ProductName && !cart)
-      return res
-        .status(400)
-        .json({ message: "Provide at least one product or cart." });
-
-    if (ProductName) {
-      const product = await Product.findOne({ ProductName });
-      if (!product)
-        return res
-          .status(400)
-          .json({ message: `Product ${ProductName} not found.` });
-      if (!ProductAmount)
-        return res.status(400).json({ message: "Specify ProductAmount." });
+    if (!CartName) {
+      return res.status(400).json({ message: "Provide CartName!" });
     }
 
-    if (cart) {
-      const foundCart = await Cart.findOne({ name: cart });
-      if (!foundCart)
-        return res.status(400).json({ message: `Cart ${cart} not found.` });
-      if (!CartAmount)
-        return res.status(400).json({ message: "Specify CartAmount." });
+    // 1️⃣ Find cart
+    const cart = await Cart.findOne({ CartName });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
     }
 
-    const orderResult = await Order.create({
-      orderId,
-      customerName,
-      ProductName,
-      ProductAmount,
-      cart,
-      CartAmount,
+    // 2️⃣ Calculate total
+    let CartTot = 0;
+
+    const product = await Product.findOne({
+      ProductName: cart.productDet.ProductName,
     });
 
-    res.status(200).json({
-      message:
-        "Order placed successfully. Save your orderId for modifications.",
+    if (!product) {
+      return res.status(404).json({
+        message: `Product ${cart.productDet.ProductName} not found`,
+      });
+    }
+
+    CartTot += product.price * cart.productDet.quantity;
+
+    // 3️⃣ Create order
+    const orderResult = await Order.create({
+      orderId: uuid(),
+      cartName: CartName,
+      totalAmount: CartTot,
+      timeOrderPlaced: new Date(),
+    });
+
+    res.status(201).json({
+      message: "Order placed successfully. Save your orderId.",
       orderResult,
     });
   } catch (error) {
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Failed to place order" });
   }
 };
 
@@ -191,7 +169,7 @@ export const updateOrder = async (req: Request, res: Response) => {
  *         description: Order deleted successfully
  *       400:
  *         description: Invalid or missing order ID
- *       500:
+ *       500:x
  *         description: Internal server error
  */
 export const DeleteOrder = async (req: Request, res: Response) => {

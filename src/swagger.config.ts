@@ -1,5 +1,5 @@
 // config/swagger.config.ts
-import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -16,7 +16,7 @@ const options: swaggerJsdoc.Options = {
         description: "Development server",
       },
       {
-        url: "https://api.example.com",
+        url: "https://localhost:6000",
         description: "Production server",
       },
     ],

@@ -23,7 +23,8 @@ export const protect = (
       username:decoded.username,
       id: decoded.id,
       role: decoded.role,
-    };
+    }
+    
 
     next();
   } catch (error) {

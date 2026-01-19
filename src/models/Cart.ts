@@ -1,21 +1,21 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICart extends Document {
-    CartOwner:string
-    productId: mongoose.Types.ObjectId;
+  CartName: string;
+  productDet: {
+    ProductName: string;
     quantity: number;
-    addedAt: Date;
+  };
+  addedAt: Date;
 }
 
 const CartSchema: Schema = new Schema({
-    CartOwner:{type:String,required:false},
-    productId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Product', 
-        required: true 
-    },
+  CartName: { type: String, required: false },
+  productDet: {
+    ProductName: { type: String, required: true },
     quantity: { type: Number, default: 1 },
-    addedAt: { type: Date, default: Date.now }
+  },
+  addedAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<ICart>('Cart', CartSchema);
+export default mongoose.model<ICart>("Cart", CartSchema);

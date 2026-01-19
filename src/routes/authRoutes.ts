@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authorizeRoles } from "../middleware/authorize";
 import {
   register,
   login,
@@ -12,7 +13,7 @@ const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
-router.get("/",AllUsers)
+router.get("/",protect,authorizeRoles("admin"),AllUsers)
 router.get("/profile", protect, getProfile);
 router.put("/change-password", protect, changePassword);
 

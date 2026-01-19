@@ -27,7 +27,7 @@ dotenv.config();
  */
 export const getCart = async (req: Request, res: Response) => {
   try {
-    const items = await Cart.find().populate("productId");
+    const items = await Cart.find();
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: "failed to fetch" });
@@ -47,14 +47,16 @@ export const getCart = async (req: Request, res: Response) => {
  *           schema:
  *             type: object
  *             required:
- *               - productId
+ *               - product name -cart name
  *             properties:
- *               productId:
+ *                cart name:
+ *                  type:string
+ *               product name:
  *                 type: string
- *                 example: 64f1c2a9c1b2a123456789ab
+ *                 example: straw berries
  *               quantity:
  *                 type: number
- *                 example: 2
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Product added to cart
@@ -66,25 +68,29 @@ export const getCart = async (req: Request, res: Response) => {
 
 export const addToCart = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, quantity } = req.body;
+    const { CartName, ProductName, quantity } = req.body;
 
-    // now TS knows req.user exists
-    const CartOwner = req.user!.username;
+    // // now TS knows req.user exists
 
-    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+    console.log(req.user);
+
+    if (!ProductName || !mongoose.Types.ObjectId.isValid(ProductName)) {
       return res.status(400).json({ error: "Incorrect product Id input" });
     }
 
-    const productExists = await Product.findById(productId);
+    const productExists = await Product.findById(ProductName);
     if (!productExists) {
       return res.status(404).json({ error: "Product not found" });
     }
 
     // create cart item with owner
     const newItem = new Cart({
-      productId,
-      quantity: quantity || 1,
-      CartOwner, // assign username
+      CartName,
+      productDet: {
+        ProductName,
+        quantity: quantity || 1,
+      },
+      addedAt: new Date(),
     });
 
     await newItem.save();
@@ -96,17 +102,18 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
 /**
  * @swagger
- * /api/cart/{id}:
+ * /api/cart/:
  *   delete:
  *     summary: Remove a single item from the cart
  *     tags: [Cart]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: product name
  *         required: true
  *         schema:
  *           type: string
- *         description: Cart item ID
+ *      example:straw berries
+ *         description: product name
  *     responses:
  *       200:
  *         description: Item removed successfully
@@ -117,17 +124,28 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
  */
 export const removeFromCart = async (req: Request, res: Response) => {
   try {
-    const id = req.params.id as string;
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "Incorrect cart Id" });
+    const { ProductName } = req.body;
+    if (!ProductName) {
+      return res.status(400).json({ error: "ProductName field is required" });
     }
 
-    const deleted = await Cart.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ error: "no cart found" });
+    // Find and delete the whole cart that contains that product
+    const deletedCart = await Cart.findOneAndDelete({
+      "productDet.ProductName": ProductName,
+    });
 
-    res.status(200).json({ message: "Removed successfully" });
+    if (!deletedCart) {
+      return res
+        .status(404)
+        .json({ error: `No product named ${ProductName} in your cart` });
+    }
+
+    return res.status(200).json({ message: "Removed successfully" });
   } catch (error: any) {
-    res.status(400).json({ error: " failed to delete" });
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "Failed to delete product from your cart" });
   }
 };
 
@@ -146,7 +164,7 @@ export const removeFromCart = async (req: Request, res: Response) => {
 export const clearCart = async (req: Request, res: Response) => {
   try {
     await Cart.deleteMany({});
-    res.status(200).json({ message: "All cart deleted" });
+    res.status(200).json({ message: "cart deleted" });
   } catch (error) {
     res.status(500).json({ error: "failed to delete" });
   }
