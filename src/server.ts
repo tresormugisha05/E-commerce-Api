@@ -7,6 +7,8 @@ import swaggerSpec from "./swagger.config";
 import cartRoutes from "./routes/cartRoutes";
 import authRoutes from "./routes/authRoutes";
 import orderRoutes from "./routes/ordersRoutes";
+import UploadRoutes from "./routes/uploadRoutes";
+import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 const MONGO_URL: string =
@@ -22,6 +24,7 @@ app.use(
     customSiteTitle: "Product API Docs",
   }),
 );
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 mongoose
   .connect(MONGO_URL)
@@ -32,7 +35,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
-
+app.use("/api/upload", UploadRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

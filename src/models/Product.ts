@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IProduct extends Document {
   name: string;
   price: number;
+  Images:string[],
   category: mongoose.Types.ObjectId;
   createdBy: mongoose.Types.ObjectId;
   inStock: boolean;
@@ -11,6 +12,7 @@ export interface IProduct extends Document {
 const ProductSchema = new Schema<IProduct>({
   name: { type: String, required: true },
   price: { type: Number, required: true },
+  Images:[{type:String}],
   category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   inStock: { type: Boolean, default: true },

@@ -1,6 +1,5 @@
-import { Request, Response } from "express";
+import Express, { Request, Response } from "express";
 import { AuthRequest } from "../models/type";
-
 export const uploadSingleFile = (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
@@ -30,4 +29,14 @@ export const uploadSingleFile = (req: AuthRequest, res: Response) => {
       error: error.message,
     });
   }
+};
+export const uploadMultipleFiles = (req: AuthRequest, res: Response) => {
+  const files = req.file as any;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ message: "No files uploaded" });
+  }
+  res.status(200).json({
+    message: "Files uploaded successfully",
+    files,
+  });
 };

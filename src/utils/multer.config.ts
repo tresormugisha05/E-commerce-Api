@@ -3,9 +3,11 @@ import path from "path";
 import fs from "fs";
 
 const uploadDir = "./uploads";
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -13,12 +15,15 @@ const storage = multer.diskStorage({
 
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext);
+
     cb(null, `${name}-${uniqueSuffix}${ext}`);
   },
 });
 
+// 3️⃣ File filter
 const fileFilter = (
   req: any,
   file: Express.Multer.File,
@@ -37,16 +42,17 @@ const fileFilter = (
   } else {
     cb(
       new Error(
-        "Invalid file type. Only JPEG, PNG, GIF, PDF, DOC, DOCX are allowed.",
+        "Invalid file type. Only JPEG, PNG, GIF, PDF, DOC, DOCX allowed",
       ),
     );
   }
 };
 
+// 4️⃣ Multer instance
 export const upload = multer({
-  storage: storage,
+  storage,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 10 * 1024 * 1024,
   },
-  fileFilter: fileFilter,
+  fileFilter,
 });

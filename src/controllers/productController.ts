@@ -72,13 +72,17 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
   if (!mongoose.Types.ObjectId.isValid(category)) {
     return res.status(400).json({ error: "Invalid category ID" });
   }
-
+  if (!Array.isArray(req.files)) {
+    return res.status(400).json({ message: "Images are required" });
+  }
+  const imagePaths = req.files.map((file) => file.path);
   const exists = await Category.findById(category);
   if (!exists) return res.status(404).json({ error: "Category not found" });
 
   const product = await Product.create({
     name,
     price,
+    Images: imagePaths,
     category,
     createdBy: req.user!.id,
   });
