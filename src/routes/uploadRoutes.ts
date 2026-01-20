@@ -1,8 +1,16 @@
 import { Router } from "express";
-import { upload } from "../utils/multer.config";
-import { uploadSingleFile,uploadMultipleFiles } from "../controllers/upload.controller";
+import { upload } from "../config/multer.config";
+import {
+  uploadSingleFile,
+  uploadMultipleFiles,
+} from "../controllers/upload.controller";
 import { protect } from "../middleware/authMiddleware";
-const router = Router()
+const router = Router();
 router.post("/single", protect, upload.single("image"), uploadSingleFile);
-router.post("/multiple",protect,upload.array("images", 4),uploadMultipleFiles,);
+router.post(
+  "/multiple",
+  protect,
+  upload.array("images", 4),
+  uploadMultipleFiles,
+);
 export default router;

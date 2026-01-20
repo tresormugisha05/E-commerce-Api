@@ -8,9 +8,10 @@ export interface IUser extends Document {
   email: string;
   password: string;
   UserType: UserRole;
+  resetPasswordToken?:String
+  resetPasswordExpires?: Date
   createdAt: Date;
 }
-
 const UserSchema = new Schema<IUser>(
   {
     username: { type: String, required: true, unique: true },
@@ -21,8 +22,10 @@ const UserSchema = new Schema<IUser>(
       enum: ["admin", "vendor", "customer"],
       default: "customer",
     },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 UserSchema.pre("save", async function () {

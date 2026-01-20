@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import productRoutes from "./routes/productsRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./swagger.config";
+import swaggerSpec from "./config/swagger.config";
 import cartRoutes from "./routes/cartRoutes";
 import authRoutes from "./routes/authRoutes";
 import orderRoutes from "./routes/ordersRoutes";

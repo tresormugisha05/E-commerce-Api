@@ -75,19 +75,22 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
   if (!Array.isArray(req.files)) {
     return res.status(400).json({ message: "Images are required" });
   }
-  const imagePaths = req.files.map((file) => file.path);
+  const imageUrls = req.files.map((file) => (file as any).path);
   const exists = await Category.findById(category);
   if (!exists) return res.status(404).json({ error: "Category not found" });
-
   const product = await Product.create({
     name,
     price,
-    Images: imagePaths,
+    Images: imageUrls,
     category,
     createdBy: req.user!.id,
   });
-
-  res.status(201).json(product);
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const productWithUrls = {
+    ...product.toObject(),
+    images: product.Images.map((img) => `${baseUrl}/${img}`),
+  };
+  res.status(201).json(productWithUrls);
 };
 
 /**
