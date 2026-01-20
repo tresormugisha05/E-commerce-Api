@@ -223,16 +223,13 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: "Failed to fetch profile" });
   }
 };
-
 /**
  * @swagger
- * /api/auth/change-password:
- *   put:
- *     summary: Change user password
- *     description: Allows authenticated user to change their password
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     description: Sends a password reset token to the user's email address.
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -240,24 +237,41 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
  *           schema:
  *             type: object
  *             required:
- *               - oldPassword
- *               - newPassword
+ *               - email
  *             properties:
- *               oldPassword:
+ *               email:
  *                 type: string
- *                 example: oldPassword123
- *               newPassword:
- *                 type: string
- *                 example: newPassword456
+ *                 format: email
+ *                 example: user@example.com
  *     responses:
  *       200:
- *         description: Password changed successfully
- *       400:
- *         description: Validation error
- *       401:
- *         description: Old password incorrect
+ *         description: Password reset email sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Password reset email sent. Check your inbox!
+ *       404:
+ *         description: No user found with that email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: fail
+ *                 message:
+ *                   type: string
+ *                   example: No user found with that email
  *       500:
- *         description: Failed to change password
+ *         description: Server error
  */
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
@@ -298,6 +312,60 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
   }
 };
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset user password
+ *     description: Resets the user's password using a valid reset token.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: 8f3a9c4d2a1e6b7c9d...
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: NewStrongPassword123!
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successful. You can now login.
+ *       400:
+ *         description: Invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: fail
+ *                 message:
+ *                   type: string
+ *                   example: Invalid or expired reset token
+ *       500:
+ *         description: Server error
+ */
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
