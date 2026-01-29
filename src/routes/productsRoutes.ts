@@ -4,6 +4,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getProduct,
 } from "../controllers/productController";
 import { protect } from "../middleware/authMiddleware";
 import { authorizeRoles } from "../middleware/authorize";
@@ -12,6 +13,7 @@ import { upload } from "../config/multer.config";
 const router = Router();
 
 router.get("/", getProducts);
+router.get("/:id", getProduct);
 router.post(
   "/",
   protect,

@@ -11,6 +11,7 @@ import Product from "../models/Product";
 import Category from "../models/Categories";
 import { AuthRequest } from "../models/type";
 import dotenv from "dotenv";
+import cloudinary from "../config/claudinary.config";
 dotenv.config();
 
 /**
@@ -67,7 +68,7 @@ export const getProducts = async (_: any, res: Response) => {
  *         description: Category not found
  */
 export const createProduct = async (req: AuthRequest, res: Response) => {
-  const { name, price, category } = req.body;
+  const { name, price, category, oldPrice } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(category)) {
     return res.status(400).json({ error: "Invalid category ID" });
@@ -75,20 +76,26 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
   if (!Array.isArray(req.files)) {
     return res.status(400).json({ message: "Images are required" });
   }
-  const imageUrls = req.files.map((file) => (file as any).path);
+  const Images: any[] = [];
+  if (req.files) {
+    for (const file of req.files as any[]) {
+      const imageUrl = await cloudinary.uploader.upload(file.path);
+      Images.push(imageUrl.secure_url);
+    }
+  }
   const exists = await Category.findById(category);
   if (!exists) return res.status(404).json({ error: "Category not found" });
   const product = await Product.create({
     name,
     price,
-    Images: imageUrls,
+    oldPrice,
+    Images: Images,
     category,
     createdBy: req.user!.id,
   });
   const baseUrl = `${req.protocol}://${req.get("host")}`;
   const productWithUrls = {
     ...product.toObject(),
-    images: product.Images.map((img) => `${baseUrl}/${img}`),
   };
   res.status(201).json(productWithUrls);
 };
@@ -179,4 +186,9 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
 
   await product.deleteOne();
   res.json({ message: "Product deleted" });
+};
+export const getProduct = async (req: AuthRequest, res: Response) => {
+  const product = await Product.findById(req.params.id).populate("category");
+  if (!product) return res.status(404).json({ error: "Product not found" });
+  res.json(product);
 };
