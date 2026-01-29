@@ -9,6 +9,7 @@ router.post("/register", authController_1.register);
 router.post("/login", authController_1.login);
 router.get("/", authMiddleware_1.protect, (0, authorize_1.authorizeRoles)("admin"), authController_1.AllUsers);
 router.get("/profile", authMiddleware_1.protect, authController_1.getProfile);
+router.delete("/", authMiddleware_1.protect, (0, authorize_1.authorizeRoles)("admin"), authController_1.deleteusers);
 router.post('/forgot-password', authController_1.forgotPassword);
 router.post('/reset-password', authController_1.resetPassword);
 exports.default = router;

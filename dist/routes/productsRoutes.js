@@ -11,4 +11,5 @@ router.get("/:id", productController_1.getProduct);
 router.post("/", authMiddleware_1.protect, multer_config_1.upload.array("images", 4), (0, authorize_1.authorizeRoles)("vendor", "admin"), productController_1.createProduct);
 router.put("/:id", authMiddleware_1.protect, (0, authorize_1.authorizeRoles)("vendor", "admin"), productController_1.updateProduct);
 router.delete("/:id", authMiddleware_1.protect, (0, authorize_1.authorizeRoles)("vendor", "admin"), productController_1.deleteProduct);
+router.delete("/", authMiddleware_1.protect, (0, authorize_1.authorizeRoles)("admin"), productController_1.deleteProducts);
 exports.default = router;

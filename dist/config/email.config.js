@@ -10,12 +10,10 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 // Create transporter
 exports.transporter = nodemailer_1.default.createTransport({
-    host: process.env.EMAIL_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.EMAIL_PORT || "587"),
-    secure: false, // true for 465, false for other ports
+    service: "gmail",
     auth: {
-        user: process.env.EMAIL_USER, // Your email
-        pass: process.env.EMAIL_PASSWORD, // Your email password or app password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
     },
 });
 // Verify connection

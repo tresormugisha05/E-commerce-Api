@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.getProfile = exports.login = exports.AllUsers = exports.register = void 0;
+exports.deleteusers = exports.resetPassword = exports.forgotPassword = exports.getProfile = exports.login = exports.AllUsers = exports.register = void 0;
 const emailServices_1 = require("../services/emailServices");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -394,3 +394,32 @@ const resetPassword = async (req, res) => {
     }
 };
 exports.resetPassword = resetPassword;
+/**
+ * @swagger
+ * /api/auth/users:
+ *   delete:
+ *     summary: Delete all users (Admin only)
+ *     description: Deletes all users from the database
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All users deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       500:
+ *         description: Failed to delete users
+ */
+const deleteusers = async (req, res) => {
+    try {
+        await User_1.default.deleteMany({});
+        res.json({ message: "All users deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to delete users" });
+    }
+};
+exports.deleteusers = deleteusers;

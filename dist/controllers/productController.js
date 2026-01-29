@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProduct = exports.deleteProduct = exports.updateProduct = exports.createProduct = exports.getProducts = void 0;
+exports.deleteProducts = exports.getProduct = exports.deleteProduct = exports.updateProduct = exports.createProduct = exports.getProducts = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Product_1 = __importDefault(require("../models/Product"));
 const Categories_1 = __importDefault(require("../models/Categories"));
@@ -183,6 +183,25 @@ const deleteProduct = async (req, res) => {
     res.json({ message: "Product deleted" });
 };
 exports.deleteProduct = deleteProduct;
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Get a single product
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product found
+ *       404:
+ *         description: Product not found
+ */
 const getProduct = async (req, res) => {
     const product = await Product_1.default.findById(req.params.id).populate("category");
     if (!product)
@@ -190,3 +209,31 @@ const getProduct = async (req, res) => {
     res.json(product);
 };
 exports.getProduct = getProduct;
+/**
+ * @swagger
+ * /api/products:
+ *   delete:
+ *     summary: Delete all products (Admin only)
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All products deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       500:
+ *         description: Failed to delete products
+ */
+const deleteProducts = async (req, res) => {
+    try {
+        await Product_1.default.deleteMany({});
+        res.json({ message: "All products deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to delete products" });
+    }
+};
+exports.deleteProducts = deleteProducts;
