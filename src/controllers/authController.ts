@@ -404,4 +404,31 @@ export const resetPassword = async (req: Request, res: Response) => {
       error: error.message,
     });
   }
+}
+/**
+ * @swagger
+ * /api/auth/users:
+ *   delete:
+ *     summary: Delete all users (Admin only)
+ *     description: Deletes all users from the database
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All users deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       500:
+ *         description: Failed to delete users
+ */
+export const deleteusers = async (req: AuthRequest, res: Response) => {
+  try {
+    await User.deleteMany({});
+    res.json({ message: "All users deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete users" });
+  }
 };

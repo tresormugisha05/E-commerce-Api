@@ -7,6 +7,7 @@ import {
   resetPassword,
   forgotPassword,
   AllUsers,
+  deleteusers,
 } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
 
@@ -15,6 +16,10 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/",protect,authorizeRoles("admin"),AllUsers)
 router.get("/profile", protect, getProfile);
+router.delete("/",
+  protect,
+  authorizeRoles("admin"),
+  deleteusers)
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 export default router;

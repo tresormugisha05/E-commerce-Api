@@ -5,6 +5,7 @@ import {
   updateProduct,
   deleteProduct,
   getProduct,
+  deleteProducts,
 } from "../controllers/productController";
 import { protect } from "../middleware/authMiddleware";
 import { authorizeRoles } from "../middleware/authorize";
@@ -28,5 +29,6 @@ router.delete(
   authorizeRoles("vendor", "admin"),
   deleteProduct,
 );
+router.delete("/", protect, authorizeRoles("admin"), deleteProducts);
 
 export default router;

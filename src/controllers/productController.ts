@@ -187,8 +187,53 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
   await product.deleteOne();
   res.json({ message: "Product deleted" });
 };
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Get a single product
+ *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product found
+ *       404:
+ *         description: Product not found
+ */
 export const getProduct = async (req: AuthRequest, res: Response) => {
   const product = await Product.findById(req.params.id).populate("category");
   if (!product) return res.status(404).json({ error: "Product not found" });
   res.json(product);
+};
+/**
+ * @swagger
+ * /api/products:
+ *   delete:
+ *     summary: Delete all products (Admin only)
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All products deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin access required
+ *       500:
+ *         description: Failed to delete products
+ */
+export const deleteProducts = async (req: AuthRequest, res: Response) => {
+  try {
+    await Product.deleteMany({});
+    res.json({ message: "All products deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete products" });
+  }
 };
