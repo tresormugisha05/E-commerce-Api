@@ -1,25 +1,27 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 
-export type UserRole = "admin" | "vendor" | "customer";
+export type UserRole = "vendor" | "customer";
 
 export interface IUser extends Document {
   username: string;
+  profile?: string;
   email: string;
   password: string;
   UserType: UserRole;
-  resetPasswordToken?:String
-  resetPasswordExpires?: Date
+  resetPasswordToken?: String;
+  resetPasswordExpires?: Date;
   createdAt: Date;
 }
 const UserSchema = new Schema<IUser>(
   {
     username: { type: String, required: true, unique: true },
+    profile: { type: String, default: "" },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     UserType: {
       type: String,
-      enum: ["admin", "vendor", "customer"],
+      enum: ["vendor", "customer"],
       default: "customer",
     },
     resetPasswordToken: { type: String },

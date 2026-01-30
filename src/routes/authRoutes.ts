@@ -4,18 +4,22 @@ import {
   register,
   login,
   getProfile,
+  updateUser,
+  deleteAccount,
   resetPassword,
   forgotPassword,
   AllUsers,
   deleteusers,
 } from "../controllers/authController";
 import { protect } from "../middleware/authMiddleware";
-
+import { upload } from "../config/multer.config";
 const router = Router();
-router.post("/register", register);
+router.post("/register",upload.single("image"), register);
 router.post("/login", login);
 router.get("/",protect,authorizeRoles("admin"),AllUsers)
 router.get("/profile", protect, getProfile);
+router.put("/profile", protect, upload.single("profile"), updateUser);
+router.delete("/account", protect, deleteAccount);
 router.delete("/",
   protect,
   authorizeRoles("admin"),

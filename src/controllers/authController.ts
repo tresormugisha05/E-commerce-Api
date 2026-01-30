@@ -16,7 +16,8 @@ import User from "../models/User";
 import { AuthRequest } from "../models/type";
 import dotenv from "dotenv";
 import crypto from "crypto";
-
+import cloudinary from "../config/claudinary.config";
+import { profile } from "console";
 dotenv.config();
 /**
  * @swagger
@@ -71,11 +72,17 @@ export const register = async (req: Request, res: Response) => {
         message: "User with this email already exists",
       });
     }
+    let imageUrl = "";
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = result.secure_url;
+    }
     const user = await User.create({
       username,
       email,
       password,
       UserType: UserType || "customer",
+      profile: imageUrl,
     });
     sendWelcomeEmail(email, username).catch((err) => {
       console.error("Failed to send welcome email:", err);
@@ -85,6 +92,7 @@ export const register = async (req: Request, res: Response) => {
       message: "User registered successfully",
       user: {
         id: user._id,
+        profile: user.profile,
         username: user.username,
         email: user.email,
         role: user.UserType,
@@ -174,13 +182,20 @@ export const login = async (req: Request, res: Response) => {
     }
     const token = jwt.sign(
       { id: user._id, role: user.UserType },
-      process.env.JWT_SECRET!, // ✅ SAME SECRET
+      process.env.JWT_SECRET!,
       { expiresIn: "1d" },
     );
 
     res.json({
       message: "Login successful",
       token,
+      user: {
+        id: user._id,
+        profile: user.profile,
+        username: user.username,
+        email: user.email,
+        role: user.UserType,
+      },
     });
   } catch (error) {
     console.error("LOGIN ERROR 👉", error);
@@ -216,11 +231,129 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
       id: user._id,
       username: user.username,
       email: user.email,
+      profile: user.profile,
       role: user.UserType,
       createdAt: user.createdAt,
     });
   } catch {
     res.status(500).json({ error: "Failed to fetch profile" });
+  }
+};
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     description: Update authenticated user's profile information. All fields are optional - only provided fields will be updated.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Optional - new username
+ *                 example: john_doe_updated
+ *               email:
+ *                 type: string
+ *                 description: Optional - new email address
+ *                 example: john.updated@gmail.com
+ *               profile:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional - new profile image
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Validation error or email already exists
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { username, email } = req.body;
+    const user = await User.findById(req.user!.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+    }
+
+    // Handle profile image upload
+    let imageUrl = user.profile;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = result.secure_url;
+    }
+
+    // Update user fields
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (imageUrl) user.profile = imageUrl;
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        profile: user.profile,
+        role: user.UserType,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+/**
+ * @swagger
+ * /api/auth/account:
+ *   delete:
+ *     summary: Delete user account
+ *     description: Delete the authenticated user's account permanently
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to delete account
+ */
+export const deleteAccount = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user!.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await User.findByIdAndDelete(req.user!.id);
+    
+    res.json({ message: "Account deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to delete account" });
   }
 };
 /**
@@ -404,7 +537,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       error: error.message,
     });
   }
-}
+};
 /**
  * @swagger
  * /api/auth/users:
