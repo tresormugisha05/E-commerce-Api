@@ -2,9 +2,11 @@ import { Router } from 'express';
 import { getCategories, createCategory, deleteCategory } from '../controllers/categoryController';
 import { protect } from '../middleware/authMiddleware';
 import { authorizeRoles } from '../middleware/authorize';
+import { upload } from '../config/multer.config';
+
 const router = Router();
 
 router.get('/', getCategories);
-router.post("/", protect, authorizeRoles("admin"), createCategory);
+router.post("/", protect, upload.single("image"), authorizeRoles("admin"), createCategory);
 router.delete("/:id", protect, authorizeRoles("admin"), deleteCategory);
 export default router;

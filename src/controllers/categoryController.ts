@@ -7,6 +7,7 @@
 
 import { Request, Response } from "express";
 import Category from "../models/Categories";
+import cloudinary from "../config/claudinary.config";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -48,8 +49,29 @@ export const getCategories = async (_: Request, res: Response) => {
  *         description: Category created successfully
  */
 export const createCategory = async (req: Request, res: Response) => {
-  const category = await Category.create(req.body);
-  res.status(201).json(category);
+  try {
+    const { name, description } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
+
+    let imageUrl = "";
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      imageUrl = result.secure_url;
+    }
+
+    const category = await Category.create({ 
+      name, 
+      description, 
+      image: imageUrl 
+    });
+    
+    res.status(201).json(category);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
 };
 
 /**
