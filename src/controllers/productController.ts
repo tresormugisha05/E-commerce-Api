@@ -91,7 +91,7 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       price,
       oldPrice,
       description,
-      stock: stock || 100,
+      inStock: stock ? stock > 0 : true,
       Images: Images,
       category,
       createdBy: req.user?.id || new mongoose.Types.ObjectId(),

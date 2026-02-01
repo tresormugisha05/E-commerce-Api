@@ -39,6 +39,7 @@ const ProductSchema = new mongoose_1.Schema({
     price: { type: Number, required: true },
     size: { type: String, enum: ["X", "S", "M", "L", "XL", "XXL"] },
     oldPrice: { type: Number },
+    description: { type: String },
     Images: [{ type: String }],
     category: { type: mongoose_1.Schema.Types.ObjectId, ref: "Category", required: true },
     createdBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },

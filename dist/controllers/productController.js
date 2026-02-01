@@ -90,7 +90,7 @@ const createProduct = async (req, res) => {
             price,
             oldPrice,
             description,
-            stock: stock || 100,
+            inStock: stock ? stock > 0 : true,
             Images: Images,
             category,
             createdBy: req.user?.id || new mongoose_1.default.Types.ObjectId(),
@@ -99,7 +99,8 @@ const createProduct = async (req, res) => {
     }
     catch (error) {
         console.error('Error creating product:', error);
-        res.status(500).json({ error: 'Failed to create product', details: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: 'Failed to create product', details: errorMessage });
     }
 };
 exports.createProduct = createProduct;
