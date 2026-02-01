@@ -34,7 +34,7 @@ const welcomeEmailTemplate = (firstName, email) => {
           <p>Thank you for registering with us. We're excited to have you on board.</p>
           <p>Your account has been successfully created with the email: <strong>${email}</strong></p>
           <p>You can now start exploring our platform and enjoy all the features we offer.</p>
-          <a href="https://yourapp.com/login" class="button">Get Started</a>
+          <a href="https://full-ecommerce-sigma.vercel.app/" class="button">Get Started</a>
         </div>
         <div class="footer">
           <p>© 2024 Your Company. All rights reserved.</p>

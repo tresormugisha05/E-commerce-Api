@@ -8,20 +8,27 @@ exports.transporter = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-// Create transporter
-exports.transporter = nodemailer_1.default.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-    },
-});
-// Verify connection
-exports.transporter.verify((error, success) => {
-    if (error) {
-        console.error("Email configuration error:", error);
-    }
-    else {
-        console.log("Email server is ready to send messages");
-    }
-});
+// Create transporter only if email credentials are provided
+exports.transporter = process.env.EMAIL_USER && process.env.EMAIL_PASSWORD
+    ? nodemailer_1.default.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD,
+        },
+    })
+    : null;
+// Only verify if transporter exists
+if (exports.transporter) {
+    exports.transporter.verify((error, success) => {
+        if (error) {
+            console.warn("Email configuration warning:", error.message);
+        }
+        else {
+            console.log("Email server is ready to send messages");
+        }
+    });
+}
+else {
+    console.log("Email service disabled - no credentials provided");
+}

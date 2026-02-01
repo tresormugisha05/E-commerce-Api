@@ -8,13 +8,13 @@ import cartRoutes from "./routes/cartRoutes";
 import authRoutes from "./routes/authRoutes";
 import orderRoutes from "./routes/ordersRoutes";
 import UploadRoutes from "./routes/uploadRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import path from "path";
 import cors from "cors";
 
 import dotenv from "dotenv";
 dotenv.config();
-const MONGO_URL: string =
-  "mongodb+srv://admin:DfET6Bc.Zyc9cLv@cluster12.etcfeji.mongodb.net/?appName=Cluster12";
+const MONGO_URL: string = process.env.MONGO_URL || "mongodb+srv://admin:DfET6Bc.Zyc9cLv@cluster12.etcfeji.mongodb.net/?appName=Cluster12";
 const app = express();
 const PORT = process.env.PORT || 9000;
 app.use(express.json({ limit: '10mb' }));
@@ -42,6 +42,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/upload", UploadRoutes);
+app.use("/api/admin", adminRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

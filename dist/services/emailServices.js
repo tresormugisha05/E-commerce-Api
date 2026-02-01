@@ -5,6 +5,10 @@ exports.sendOrderConfirmationEmail = exports.sendPasswordResetEmail = exports.se
 const email_config_1 = require("../config/email.config");
 const emailTemplate_1 = require("../utils/emailTemplate");
 const sendEmail = async (options) => {
+    if (!email_config_1.transporter) {
+        console.log("Email service disabled - skipping email send");
+        return;
+    }
     try {
         const mailOptions = {
             from: `"Your App" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,

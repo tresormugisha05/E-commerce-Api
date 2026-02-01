@@ -40,11 +40,12 @@ const mongoose_1 = __importStar(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const UserSchema = new mongoose_1.Schema({
     username: { type: String, required: true, unique: true },
+    profile: { type: String, default: "" },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     UserType: {
         type: String,
-        enum: ["admin", "vendor", "customer"],
+        enum: ["vendor", "customer", "admin", "manager", "support"],
         default: "customer",
     },
     resetPasswordToken: { type: String },

@@ -14,7 +14,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const Product_1 = __importDefault(require("../models/Product"));
 const Categories_1 = __importDefault(require("../models/Categories"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const claudinary_config_1 = __importDefault(require("../config/claudinary.config"));
+const cloudinary_config_1 = __importDefault(require("../config/cloudinary.config"));
 dotenv_1.default.config();
 /**
  * @swagger
@@ -70,36 +70,37 @@ exports.getProducts = getProducts;
  *         description: Category not found
  */
 const createProduct = async (req, res) => {
-    const { name, price, category, oldPrice } = req.body;
-    if (!mongoose_1.default.Types.ObjectId.isValid(category)) {
-        return res.status(400).json({ error: "Invalid category ID" });
-    }
-    if (!Array.isArray(req.files)) {
-        return res.status(400).json({ message: "Images are required" });
-    }
-    const Images = [];
-    if (req.files) {
-        for (const file of req.files) {
-            const imageUrl = await claudinary_config_1.default.uploader.upload(file.path);
-            Images.push(imageUrl.secure_url);
+    try {
+        const { name, price, category, oldPrice, description, stock } = req.body;
+        if (!mongoose_1.default.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({ error: "Invalid category ID" });
         }
+        const Images = [];
+        if (req.files && Array.isArray(req.files)) {
+            for (const file of req.files) {
+                const imageUrl = await cloudinary_config_1.default.uploader.upload(file.path);
+                Images.push(imageUrl.secure_url);
+            }
+        }
+        const exists = await Categories_1.default.findById(category);
+        if (!exists)
+            return res.status(404).json({ error: "Category not found" });
+        const product = await Product_1.default.create({
+            name,
+            price,
+            oldPrice,
+            description,
+            stock: stock || 100,
+            Images: Images,
+            category,
+            createdBy: req.user?.id || new mongoose_1.default.Types.ObjectId(),
+        });
+        res.status(201).json(product);
     }
-    const exists = await Categories_1.default.findById(category);
-    if (!exists)
-        return res.status(404).json({ error: "Category not found" });
-    const product = await Product_1.default.create({
-        name,
-        price,
-        oldPrice,
-        Images: Images,
-        category,
-        createdBy: req.user.id,
-    });
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const productWithUrls = {
-        ...product.toObject(),
-    };
-    res.status(201).json(productWithUrls);
+    catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ error: 'Failed to create product', details: error.message });
+    }
 };
 exports.createProduct = createProduct;
 /**

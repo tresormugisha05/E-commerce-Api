@@ -18,8 +18,8 @@ const storage = multer_1.default.diskStorage({
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
         const ext = path_1.default.extname(file.originalname);
-        const name = path_1.default.basename(file.originalname, ext);
-        cb(null, `${name}-${uniqueSuffix}${ext}`);
+        // Generate short filename: img-timestamp-random.ext
+        cb(null, `img-${uniqueSuffix}${ext}`);
     },
 });
 // 3️⃣ File filter

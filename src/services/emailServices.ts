@@ -13,6 +13,11 @@ interface EmailOptions {
 }
 
 const sendEmail = async (options: EmailOptions): Promise<void> => {
+  if (!transporter) {
+    console.log("Email service disabled - skipping email send");
+    return;
+  }
+
   try {
     const mailOptions = {
       from: `"Your App" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,

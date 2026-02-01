@@ -11,7 +11,7 @@ import Product from "../models/Product";
 import Category from "../models/Categories";
 import { AuthRequest } from "../models/type";
 import dotenv from "dotenv";
-import cloudinary from "../config/claudinary.config";
+import cloudinary from "../config/cloudinary.config";
 dotenv.config();
 
 /**
@@ -68,36 +68,41 @@ export const getProducts = async (_: any, res: Response) => {
  *         description: Category not found
  */
 export const createProduct = async (req: AuthRequest, res: Response) => {
-  const { name, price, category, oldPrice } = req.body;
+  try {
+    const { name, price, category, oldPrice, description, stock } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(category)) {
-    return res.status(400).json({ error: "Invalid category ID" });
-  }
-  if (!Array.isArray(req.files)) {
-    return res.status(400).json({ message: "Images are required" });
-  }
-  const Images: any[] = [];
-  if (req.files) {
-    for (const file of req.files as any[]) {
-      const imageUrl = await cloudinary.uploader.upload(file.path);
-      Images.push(imageUrl.secure_url);
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({ error: "Invalid category ID" });
     }
+    
+    const Images: any[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files as any[]) {
+        const imageUrl = await cloudinary.uploader.upload(file.path);
+        Images.push(imageUrl.secure_url);
+      }
+    }
+    
+    const exists = await Category.findById(category);
+    if (!exists) return res.status(404).json({ error: "Category not found" });
+    
+    const product = await Product.create({
+      name,
+      price,
+      oldPrice,
+      description,
+      stock: stock || 100,
+      Images: Images,
+      category,
+      createdBy: req.user?.id || new mongoose.Types.ObjectId(),
+    });
+    
+    res.status(201).json(product);
+  } catch (error) {
+    console.error('Error creating product:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Failed to create product', details: errorMessage });
   }
-  const exists = await Category.findById(category);
-  if (!exists) return res.status(404).json({ error: "Category not found" });
-  const product = await Product.create({
-    name,
-    price,
-    oldPrice,
-    Images: Images,
-    category,
-    createdBy: req.user!.id,
-  });
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
-  const productWithUrls = {
-    ...product.toObject(),
-  };
-  res.status(201).json(productWithUrls);
 };
 
 /**

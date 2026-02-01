@@ -9,13 +9,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteusers = exports.resetPassword = exports.forgotPassword = exports.getProfile = exports.login = exports.AllUsers = exports.register = void 0;
+exports.deleteusers = exports.resetPassword = exports.forgotPassword = exports.deleteAccount = exports.updateUser = exports.getProfile = exports.login = exports.AllUsers = exports.register = void 0;
 const emailServices_1 = require("../services/emailServices");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../models/User"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const crypto_1 = __importDefault(require("crypto"));
+const claudinary_config_1 = __importDefault(require("../config/claudinary.config"));
 dotenv_1.default.config();
 /**
  * @swagger
@@ -69,11 +70,17 @@ const register = async (req, res) => {
                 message: "User with this email already exists",
             });
         }
+        let imageUrl = "";
+        if (req.file) {
+            const result = await claudinary_config_1.default.uploader.upload(req.file.path);
+            imageUrl = result.secure_url;
+        }
         const user = await User_1.default.create({
             username,
             email,
             password,
             UserType: UserType || "customer",
+            profile: imageUrl,
         });
         (0, emailServices_1.sendWelcomeEmail)(email, username).catch((err) => {
             console.error("Failed to send welcome email:", err);
@@ -83,6 +90,7 @@ const register = async (req, res) => {
             message: "User registered successfully",
             user: {
                 id: user._id,
+                profile: user.profile,
                 username: user.username,
                 email: user.email,
                 role: user.UserType,
@@ -170,11 +178,17 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ error: "Invalid credentials" });
         }
-        const token = jsonwebtoken_1.default.sign({ id: user._id, role: user.UserType }, process.env.JWT_SECRET, // ✅ SAME SECRET
-        { expiresIn: "1d" });
+        const token = jsonwebtoken_1.default.sign({ id: user._id, role: user.UserType }, process.env.JWT_SECRET, { expiresIn: "1d" });
         res.json({
             message: "Login successful",
             token,
+            user: {
+                id: user._id,
+                profile: user.profile,
+                username: user.username,
+                email: user.email,
+                role: user.UserType,
+            },
         });
     }
     catch (error) {
@@ -210,6 +224,7 @@ const getProfile = async (req, res) => {
             id: user._id,
             username: user.username,
             email: user.email,
+            profile: user.profile,
             role: user.UserType,
             createdAt: user.createdAt,
         });
@@ -219,6 +234,121 @@ const getProfile = async (req, res) => {
     }
 };
 exports.getProfile = getProfile;
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     summary: Update user profile
+ *     description: Update authenticated user's profile information. All fields are optional - only provided fields will be updated.
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Optional - new username
+ *                 example: john_doe_updated
+ *               email:
+ *                 type: string
+ *                 description: Optional - new email address
+ *                 example: john.updated@gmail.com
+ *               profile:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional - new profile image
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Validation error or email already exists
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
+const updateUser = async (req, res) => {
+    try {
+        const { username, email } = req.body;
+        const user = await User_1.default.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        // Check if email is being changed and if it already exists
+        if (email && email !== user.email) {
+            const existingUser = await User_1.default.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ error: "Email already exists" });
+            }
+        }
+        // Handle profile image upload
+        let imageUrl = user.profile;
+        if (req.file) {
+            const result = await claudinary_config_1.default.uploader.upload(req.file.path);
+            imageUrl = result.secure_url;
+        }
+        // Update user fields
+        if (username)
+            user.username = username;
+        if (email)
+            user.email = email;
+        if (imageUrl)
+            user.profile = imageUrl;
+        await user.save();
+        res.json({
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                profile: user.profile,
+                role: user.UserType,
+            },
+        });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to update profile" });
+    }
+};
+exports.updateUser = updateUser;
+/**
+ * @swagger
+ * /api/auth/account:
+ *   delete:
+ *     summary: Delete user account
+ *     description: Delete the authenticated user's account permanently
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Failed to delete account
+ */
+const deleteAccount = async (req, res) => {
+    try {
+        const user = await User_1.default.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        await User_1.default.findByIdAndDelete(req.user.id);
+        res.json({ message: "Account deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to delete account" });
+    }
+};
+exports.deleteAccount = deleteAccount;
 /**
  * @swagger
  * /api/auth/forgot-password:
