@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 export interface Order extends Document {
   orderId: string;
+  userId: string;
   cartName: string;
   totalAmount: number;
   status: string;
@@ -21,6 +22,7 @@ export interface Order extends Document {
 }
 const OrderSchema = new Schema<Order>({
   orderId: { type: String },
+  userId: { type: String, required: true },
   cartName: { type: String, required: true },
   totalAmount: { type: Number },
   status: { type: String, default: 'pending', enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] },

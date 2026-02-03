@@ -14,6 +14,7 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const ordersRoutes_1 = __importDefault(require("./routes/ordersRoutes"));
 const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
+const vendorRoutes_1 = __importDefault(require("./routes/vendorRoutes"));
 const path_1 = __importDefault(require("path"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -40,6 +41,7 @@ app.use("/api/auth", authRoutes_1.default);
 app.use("/api/orders", ordersRoutes_1.default);
 app.use("/api/upload", uploadRoutes_1.default);
 app.use("/api/admin", adminRoutes_1.default);
+app.use("/api/vendor", vendorRoutes_1.default);
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

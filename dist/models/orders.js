@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const OrderSchema = new mongoose_1.Schema({
     orderId: { type: String },
+    userId: { type: String, required: true },
     cartName: { type: String, required: true },
     totalAmount: { type: Number },
     status: { type: String, default: 'pending', enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] },

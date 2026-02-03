@@ -200,7 +200,16 @@ export const getUserOrders = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const orders = await Order.find().sort({ createdAt: -1 });
+    // Get user to find their cart name
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userCartName = `${user.username}_cart`;
+    
+    // Filter orders by user's cart name
+    const orders = await Order.find({ cartName: userCartName }).sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch orders", error });
@@ -213,27 +222,33 @@ export const cancelOrder = async (req: Request, res: Response) => {
     const { orderId } = req.params;
     const userId = (req as any).user?.id;
     
-    const order = await Order.findByIdAndUpdate(
-      orderId,
+    // Get user to verify ownership
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userCartName = `${user.username}_cart`;
+    
+    // Find order and verify it belongs to the user
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, cartName: userCartName },
       { status: 'cancelled' },
       { new: true }
     );
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Order not found or access denied" });
     }
 
     // Send cancellation email
     try {
-      const user = await User.findById(userId);
-      if (user) {
-        await sendOrderCancellationEmail(
-          user.email, 
-          user.username, 
-          order.orderId || order._id.toString(), 
-          'customer'
-        );
-      }
+      await sendOrderCancellationEmail(
+        user.email, 
+        user.username, 
+        order.orderId || order._id.toString(), 
+        'customer'
+      );
     } catch (emailError) {
       console.error('Failed to send cancellation email:', emailError);
     }

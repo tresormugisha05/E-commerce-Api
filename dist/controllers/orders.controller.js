@@ -184,7 +184,14 @@ const getUserOrders = async (req, res) => {
         if (!userId) {
             return res.status(401).json({ message: "User not authenticated" });
         }
-        const orders = await orders_1.default.find().sort({ createdAt: -1 });
+        // Get user to find their cart name
+        const user = await User_1.default.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const userCartName = `${user.username}_cart`;
+        // Filter orders by user's cart name
+        const orders = await orders_1.default.find({ cartName: userCartName }).sort({ createdAt: -1 });
         res.status(200).json(orders);
     }
     catch (error) {
@@ -197,16 +204,20 @@ const cancelOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
         const userId = req.user?.id;
-        const order = await orders_1.default.findByIdAndUpdate(orderId, { status: 'cancelled' }, { new: true });
+        // Get user to verify ownership
+        const user = await User_1.default.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const userCartName = `${user.username}_cart`;
+        // Find order and verify it belongs to the user
+        const order = await orders_1.default.findOneAndUpdate({ _id: orderId, cartName: userCartName }, { status: 'cancelled' }, { new: true });
         if (!order) {
-            return res.status(404).json({ message: "Order not found" });
+            return res.status(404).json({ message: "Order not found or access denied" });
         }
         // Send cancellation email
         try {
-            const user = await User_1.default.findById(userId);
-            if (user) {
-                await (0, emailServices_1.sendOrderCancellationEmail)(user.email, user.username, order.orderId || order._id.toString(), 'customer');
-            }
+            await (0, emailServices_1.sendOrderCancellationEmail)(user.email, user.username, order.orderId || order._id.toString(), 'customer');
         }
         catch (emailError) {
             console.error('Failed to send cancellation email:', emailError);
