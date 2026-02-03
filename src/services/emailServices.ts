@@ -4,6 +4,7 @@ import {
   welcomeEmailTemplate,
   passwordResetTemplate,
   orderConfirmationTemplate,
+  orderCancellationTemplate,
 } from "../utils/emailTemplate";
 
 interface EmailOptions {
@@ -67,5 +68,18 @@ export const sendOrderConfirmationEmail = async (
     to: email,
     subject: `Order Confirmation - ${orderId}`,
     html: orderConfirmationTemplate(firstName, orderId, total),
+  });
+};
+
+export const sendOrderCancellationEmail = async (
+  email: string,
+  firstName: string,
+  orderId: string,
+  cancelledBy: string,
+): Promise<void> => {
+  await sendEmail({
+    to: email,
+    subject: `Order Cancelled - ${orderId}`,
+    html: orderCancellationTemplate(firstName, orderId, cancelledBy),
   });
 };

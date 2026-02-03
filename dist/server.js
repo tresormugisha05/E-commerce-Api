@@ -25,7 +25,6 @@ app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 app.use((0, cors_1.default)());
 app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_config_1.default, {
-    // cSpell:ignore topbar
     customCss: ".swagger-ui .topbar { display: none }",
     customSiteTitle: "Product API Docs",
 }));

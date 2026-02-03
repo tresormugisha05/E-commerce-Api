@@ -38,6 +38,20 @@ const OrderSchema = new mongoose_1.Schema({
     orderId: { type: String },
     cartName: { type: String, required: true },
     totalAmount: { type: Number },
+    status: { type: String, default: 'pending', enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] },
+    items: [{
+            productId: String,
+            name: String,
+            price: Number,
+            quantity: Number
+        }],
+    customerInfo: {
+        name: String,
+        email: String,
+        phone: String,
+        address: String
+    },
+    paymentMethod: { type: String, default: 'card' },
     timeOrderPlaced: { type: Date, required: false, default: Date.now },
 });
 exports.default = mongoose_1.default.model("orders", OrderSchema);

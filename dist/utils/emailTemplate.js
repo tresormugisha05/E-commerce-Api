@@ -1,7 +1,7 @@
 "use strict";
 // src/templates/email.templates.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.orderConfirmationTemplate = exports.passwordResetTemplate = exports.welcomeEmailTemplate = void 0;
+exports.orderCancellationTemplate = exports.orderConfirmationTemplate = exports.passwordResetTemplate = exports.welcomeEmailTemplate = void 0;
 const welcomeEmailTemplate = (firstName, email) => {
     return `
     <!DOCTYPE html>
@@ -112,21 +112,23 @@ const orderConfirmationTemplate = (firstName, orderId, total) => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>Order Confirmed!</h1>
+          <h1>🎉 Order Confirmed!</h1>
         </div>
         <div class="content">
-          <h2>Thank you, ${firstName}!</h2>
+          <h2>Congratulations, ${firstName}!</h2>
           <p>Your order has been successfully placed and is being processed.</p>
           <div class="order-details">
             <h3>Order Details:</h3>
-            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Order ID:</strong> #${orderId}</p>
             <p><strong>Total Amount:</strong> $${total.toFixed(2)}</p>
             <p><strong>Status:</strong> Processing</p>
           </div>
-          <p>We'll send you another email when your order ships.</p>
+          <p>We will be in contact with you via email regarding your order status and delivery updates.</p>
+          <p>If you have any questions or concerns, please don't hesitate to contact us at this email address.</p>
         </div>
         <div class="footer">
-          <p>© 2024 Your Company. All rights reserved.</p>
+          <p>© 2024 B-DIFFERENT. All rights reserved.</p>
+          <p>Thank you for choosing B-DIFFERENT!</p>
         </div>
       </div>
     </body>
@@ -134,3 +136,44 @@ const orderConfirmationTemplate = (firstName, orderId, total) => {
   `;
 };
 exports.orderConfirmationTemplate = orderConfirmationTemplate;
+const orderCancellationTemplate = (firstName, orderId, cancelledBy) => {
+    const cancelledByText = cancelledBy === 'admin' ? 'by our admin team' : 'by you';
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #dc2626; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .order-details { background: white; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #dc2626; }
+        .footer { text-align: center; padding: 20px; color: #777; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Order Cancelled</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${firstName},</h2>
+          <p>Your order has been successfully cancelled ${cancelledByText}.</p>
+          <div class="order-details">
+            <h3>Cancellation Details:</h3>
+            <p><strong>Order ID:</strong> #${orderId}</p>
+            <p><strong>Status:</strong> Cancelled</p>
+            <p><strong>Cancelled by:</strong> ${cancelledBy === 'admin' ? 'Admin' : 'Customer'}</p>
+          </div>
+          <p>If you have any questions about this cancellation, please contact us at this email address.</p>
+        </div>
+        <div class="footer">
+          <p>© 2024 B-DIFFERENT. All rights reserved.</p>
+          <p>Thank you for choosing B-DIFFERENT!</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+exports.orderCancellationTemplate = orderCancellationTemplate;

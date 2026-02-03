@@ -10,6 +10,7 @@ import Order from "../models/orders";
 import Cart from "../models/Cart";
 import Product from "../models/Product";
 import User from "../models/User";
+import { sendOrderConfirmationEmail, sendOrderCancellationEmail } from "../services/emailServices";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -78,6 +79,16 @@ export const NewOrder = async (req: Request, res: Response) => {
       cartName: cart.CartName,
       totalAmount,
     });
+
+    // Send order confirmation email
+    try {
+      const user = await User.findOne({ username: cart.CartName.replace('_cart', '') });
+      if (user) {
+        await sendOrderConfirmationEmail(user.email, user.username, orderId, totalAmount);
+      }
+    } catch (emailError) {
+      console.error('Failed to send order confirmation email:', emailError);
+    }
 
     res.status(201).json({
       message: "Order placed successfully",
@@ -178,5 +189,111 @@ export const DeleteOrder = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete order", error });
+  }
+};
+
+// Get user orders
+export const getUserOrders = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch orders", error });
+  }
+};
+
+// Cancel order
+export const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const userId = (req as any).user?.id;
+    
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status: 'cancelled' },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Send cancellation email
+    try {
+      const user = await User.findById(userId);
+      if (user) {
+        await sendOrderCancellationEmail(
+          user.email, 
+          user.username, 
+          order.orderId || order._id.toString(), 
+          'customer'
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send cancellation email:', emailError);
+    }
+
+    res.status(200).json({ message: "Order cancelled successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to cancel order", error });
+  }
+};
+
+// Update order status (admin)
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Send cancellation email if admin cancelled the order
+    if (status === 'cancelled') {
+      try {
+        const user = await User.findOne({ username: order.cartName.replace('_cart', '') });
+        if (user) {
+          await sendOrderCancellationEmail(
+            user.email, 
+            user.username, 
+            order.orderId || order._id.toString(), 
+            'admin'
+          );
+        }
+      } catch (emailError) {
+        console.error('Failed to send admin cancellation email:', emailError);
+      }
+    }
+
+    res.status(200).json({ message: "Order status updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update order status", error });
+  }
+};
+
+// Get all orders (admin)
+export const getAllOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find().sort({ timeOrderPlaced: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch orders", error });
   }
 };

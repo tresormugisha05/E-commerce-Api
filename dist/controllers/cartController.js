@@ -9,7 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearCart = exports.removeFromCart = exports.addToCart = exports.getCart = void 0;
+exports.clearSpecificCart = exports.getCartByName = exports.clearCart = exports.removeFromCart = exports.addToCart = exports.getCart = void 0;
 const Cart_1 = __importDefault(require("../models/Cart"));
 const Product_1 = __importDefault(require("../models/Product"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -169,3 +169,33 @@ const clearCart = async (req, res) => {
     }
 };
 exports.clearCart = clearCart;
+// Get cart by name
+const getCartByName = async (req, res) => {
+    try {
+        const { cartName } = req.params;
+        const cart = await Cart_1.default.findOne({ CartName: cartName });
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+        res.json(cart);
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to fetch cart" });
+    }
+};
+exports.getCartByName = getCartByName;
+// Clear specific cart
+const clearSpecificCart = async (req, res) => {
+    try {
+        const { cartName } = req.body;
+        if (!cartName) {
+            return res.status(400).json({ error: "cartName is required" });
+        }
+        await Cart_1.default.deleteOne({ CartName: cartName });
+        res.status(200).json({ message: "Cart cleared successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ error: "Failed to clear cart" });
+    }
+};
+exports.clearSpecificCart = clearSpecificCart;

@@ -25,7 +25,6 @@ app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, {
-    // cSpell:ignore topbar
     customCss: ".swagger-ui .topbar { display: none }",
     customSiteTitle: "Product API Docs",
   }),

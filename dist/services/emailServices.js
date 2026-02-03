@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendOrderConfirmationEmail = exports.sendPasswordResetEmail = exports.sendWelcomeEmail = void 0;
+exports.sendOrderCancellationEmail = exports.sendOrderConfirmationEmail = exports.sendPasswordResetEmail = exports.sendWelcomeEmail = void 0;
 // src/services/email.service.ts
 const email_config_1 = require("../config/email.config");
 const emailTemplate_1 = require("../utils/emailTemplate");
@@ -48,3 +48,11 @@ const sendOrderConfirmationEmail = async (email, firstName, orderId, total) => {
     });
 };
 exports.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
+const sendOrderCancellationEmail = async (email, firstName, orderId, cancelledBy) => {
+    await sendEmail({
+        to: email,
+        subject: `Order Cancelled - ${orderId}`,
+        html: (0, emailTemplate_1.orderCancellationTemplate)(firstName, orderId, cancelledBy),
+    });
+};
+exports.sendOrderCancellationEmail = sendOrderCancellationEmail;
